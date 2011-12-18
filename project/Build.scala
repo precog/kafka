@@ -18,6 +18,12 @@ object CommonSettings {
 object KafkaBuild extends Build {
   import CommonSettings._
 
+  val nexusSettings = Seq(
+    resolvers ++= Seq("ReportGrid repo" at            "http://devci01.reportgrid.com:8081/content/repositories/releases",
+                      "ReportGrid snapshot repo" at   "http://devci01.reportgrid.com:8081/content/repositories/snapshots"),
+                       credentials += Credentials(Path.userHome / ".ivy2" / ".rgcredentials")
+                     )
+
   override def projectDefinitions(base: File) = {
     val coreSettings = commonSettings ++ sbtassembly.Plugin.assemblySettings ++ Seq(
       version := "0.7.5",
@@ -82,17 +88,23 @@ object KafkaBuild extends Build {
                                                                     ExclusionRule(organization = "javax.jms")) 
       ),
       mainClass := Some("kafka.Kafka"),
-      test in assembly := {}
+      test in assembly := {},
+      publishTo <<= (version) { version: String =>
+        val nexus = "http://devci01.reportgrid.com:8081/content/repositories/"
+        if (version.trim.endsWith("SNAPSHOT")) Some("snapshots" at nexus + "snapshots/") 
+        else                                   Some("releases"  at nexus + "releases/")
+      },
+      credentials += Credentials(Path.userHome / ".ivy2" / ".rgcredentials")
     )
   
-    val core = Project("kafka-core", file("core"), settings = coreSettings)
+    val core = Project("kafka-core", file("core"), settings = coreSettings).settings(nexusSettings : _*)
 
     val examplesSettings = commonSettings ++ Seq(
       version := "0.7.5",
       libraryDependencies ++= Seq(
       )
     )
-  
+ 
     val examples = Project("java-examples", file("examples"), settings = examplesSettings)
     
     val contribSettings = commonSettings ++ Seq(
