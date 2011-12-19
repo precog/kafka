@@ -19,8 +19,8 @@ object KafkaBuild extends Build {
   import CommonSettings._
 
   val nexusSettings = Seq(
-    resolvers ++= Seq("ReportGrid repo" at            "http://devci01.reportgrid.com:8081/content/repositories/releases",
-                      "ReportGrid snapshot repo" at   "http://devci01.reportgrid.com:8081/content/repositories/snapshots"),
+    resolvers ++= Seq("ReportGrid repo" at            "http://nexus.reportgrid.com/content/repositories/releases",
+                      "ReportGrid snapshot repo" at   "http://nexus.reportgrid.com/content/repositories/snapshots"),
                        credentials += Credentials(Path.userHome / ".ivy2" / ".rgcredentials")
                      )
 
@@ -90,7 +90,7 @@ object KafkaBuild extends Build {
       mainClass := Some("kafka.Kafka"),
       test in assembly := {},
       publishTo <<= (version) { version: String =>
-        val nexus = "http://devci01.reportgrid.com:8081/content/repositories/"
+        val nexus = "http://nexus.reportgrid.com/content/repositories/"
         if (version.trim.endsWith("SNAPSHOT")) Some("snapshots" at nexus + "snapshots/") 
         else                                   Some("releases"  at nexus + "releases/")
       },
