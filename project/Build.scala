@@ -97,7 +97,23 @@ object KafkaBuild extends Build {
       credentials += Credentials(Path.userHome / ".ivy2" / ".rgcredentials")
     )
   
-    val core = Project("kafka-core", file("core"), settings = coreSettings).settings(nexusSettings : _*)
+    val distribution = TaskKey[File]("distribution")
+
+    val distributionTask = distribution <<= (assembly,streams) map { (assemblyFile : File,s) =>
+      val zipFiles = List((assemblyFile, ("kafka/core/target/" + assemblyFile.getName)), 
+			  (new File("bin/new-kafka-server-start.sh"), "kafka/bin/kafka-server-start.sh")) ++
+		     List("config/server.properties", "config/log4j.properties").map(fn => (new File(fn), "kafka/" + fn))
+
+      IO.createDirectory(new File("dist"))
+      val zipOutput = new File("dist/kafka-0.7.5.zip")
+      s.log.info("Creating distribution zipfile: " + zipOutput)
+      IO.zip(zipFiles, zipOutput)
+      s.log.info("Zipfile complete")
+      zipOutput
+    }
+
+
+    val core = Project("kafka-core", file("core"), settings = coreSettings).settings(nexusSettings : _*).settings(distributionTask)
 
     val examplesSettings = commonSettings ++ Seq(
       version := "0.7.5",
@@ -122,7 +138,6 @@ object KafkaBuild extends Build {
     )
   
     val perf = Project("perf", file("perf"), settings = perfSettings)
-    
 
     core :: examples :: contrib :: perf :: Nil
   }
