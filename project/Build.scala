@@ -5,7 +5,7 @@ import sbt.NameFilter._
 
 object CommonSettings {
   val buildOrganization = "org.apache"
-  val buildScalaVersion = "2.9.1"
+  val buildScalaVersion = "2.9.2"
 
   val commonSettings = Defaults.defaultSettings ++ Seq (
     organization := buildOrganization,
